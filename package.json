@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "browser-sync": "^2.27.7",
+    "tronweb": "^4.1.0",
+    "web3": "^1.7.0",
+    "web3-init": "^2.3.3"
+  }
+}
