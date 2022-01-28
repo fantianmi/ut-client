@@ -285,11 +285,20 @@
 				contract.methods.transfer(receiveAddress, uintAmount).send({
 					from: this.address,
 				}, (err, res) => {
-					console.log(res)
-					uni.showToast({
-						title:'支付成功',
-						icon:'success'
-					})
+					
+					if(err == null){
+						console.log(res)//res 为txid
+						uni.showToast({
+							title:'支付成功',
+							icon:'success'
+						})
+					}else{
+						uni.showToast({
+							title:err.message,
+							icon:'none'
+						})
+					}
+					
 				})
 			},
 			showError(message) {
