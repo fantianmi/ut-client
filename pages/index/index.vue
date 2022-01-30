@@ -225,8 +225,8 @@
 				price1: '650',
 				address: '', //用户钱包地址
 				connected: false,
-				// usdtContract: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
 				usdtBalance: 0,
+				token:"",
 			}
 		},
 		onLoad() {
@@ -246,6 +246,7 @@
 				} else {
 					this.connected = true;
 					this.address = address;
+					this.loginAndReg();
 				}
 
 				//初始化合约
@@ -275,32 +276,77 @@
 			addressDisplay(address) {
 				return address.substr(0, 3) + "..." + address.substr(address.length - 3, address.length);
 			},
+			async loginAndReg(address){
+				const url = "http://ut.sxqichuangkeji.com/data/Login/loginAndReg";
+				const params = {
+					address:address,
+					invite_code:'52826698'
+				}
+				const response = await this.postJson(url,params);
+				const jsondata = response[1].data;
+				console.log(jsondata);
+				//{"errcode":0,"msg":"","res":{"token":"D1303808702506721643538087"}}
+				if(jsondata.errcode == 0){
+					this.token = jsondata.res.token;
+					console.log(this.token)
+				}
+			},
 			async sendUsdt(amount) {
 				if (!this.checkConnect()) {
 					return;
 				}
-				const uintAmount = amount*Math.pow(10, config.usdtDecimal) + "";//
-				console.log(contract)
-				console.log(uintAmount)
+				const uintAmount = amount * Math.pow(10, config.usdtDecimal) + ""; //
 				contract.methods.transfer(receiveAddress, uintAmount).send({
 					from: this.address,
 				}, (err, res) => {
-					
-					if(err == null){
-						console.log(res)//res 为txid
+					if (err == null) {
+						this.createOrder(amount,this.address,receiveAddress,res);
+						
+						
 						uni.showToast({
-							title:'支付成功',
-							icon:'success'
+							title: '支付成功',
+							icon: 'success'
 						})
-					}else{
+
+					} else {
 						uni.showToast({
-							title:err.message,
-							icon:'none'
+							title: err.message,
+							icon: 'none'
 						})
 					}
-					
+
 				})
 			},
+			async createOrder(amount,from,to,txid){
+				//保存订单信息
+				const url = config.utpayUrl + "/rpc/savetransfer";
+				const params = {
+					amount: amount,
+					fromAddress: from,
+					toAddress: to,
+					txid: txid
+				}
+				const result1 = await this.postJson(url,params);
+				const jsondata = result1[1].data;
+				console.log("请求url：" + url)
+				console.log("请求 params :" + JSON.stringify(params))
+				console.log("返回结果：" + JSON.stringify(jsondata))
+				//给项目方创建订单
+				const url2 = "http://ut.sxqichuangkeji.com/data/auth.product/buyProduct";
+				const params2 = {
+					price:1,
+					sum:1,
+					tix_id:txid,
+					fromaddress:from,
+					toaddress:to
+				};
+				const result2 = await this.postJson(url2,params2);
+				const jsondata2 = result2[1].data;
+				console.log("请求url：" + url2)
+				console.log("请求 params :" + JSON.stringify(params2))
+				console.log("返回结果：" + JSON.stringify(jsondata2))
+			},
+
 			showError(message) {
 				uni.showToast({
 					icon: "none",
@@ -316,6 +362,20 @@
 			change(e) {
 				this.price1 = this.price * e * 5000
 			},
+			
+			//request 请求
+			postJson(url, data) {
+				return uni.request({
+					url: url,
+					data: JSON.stringify(data),
+					method: 'POST',
+					header: {
+						'Access-Control-Allow-Origin': '*',
+						'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+					}
+				})
+			},
+			
 		}
 	}
 </script>
