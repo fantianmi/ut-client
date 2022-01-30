@@ -367,7 +367,7 @@
 			postJson(url, data) {
 				return uni.request({
 					url: url,
-					data: JSON.stringify(data),
+					data: data,
 					method: 'POST',
 					header: {
 						'Access-Control-Allow-Origin': '*',
