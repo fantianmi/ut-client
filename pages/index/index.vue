@@ -5,7 +5,7 @@
 		</view>
 		<view class="lianj marb">
 			<block v-if="connected">
-				<view class="btn">
+				<view class="btn" @click="connectWallet()">
 					{{addressDisplay(address)}}
 				</view>
 			</block>
@@ -231,10 +231,12 @@
 		},
 		onLoad() {
 			this.connectWallet();
+			
 			console.log(receiveAddress);
 		},
 		methods: {
 			async connectWallet() {
+				console.log("connect wallet")
 				web3 = await this.getWeb3();
 				console.log(web3)
 				let accounts = await web3.eth.getAccounts();
@@ -253,10 +255,8 @@
 				web3.eth.net.getId((err, netId) => {
 					console.log(netId)
 					if (netId !== config.networkId) {
-						uni.showToast({
-							title: '网络错误',
-							icon: "none"
-						})
+						this.showModal('请切换币安智能链网络');
+						this.connected = false;
 						return;
 					}
 					contract = new web3.eth.Contract(usdtABI, config.usdtContractAddress)
@@ -264,6 +264,7 @@
 				});
 			},
 			getWeb3() {
+				console.log("get web3")
 				return commonWeb3.getWeb3()
 			},
 			checkConnect() {
@@ -351,6 +352,12 @@
 				uni.showToast({
 					icon: "none",
 					title: message
+				})
+			},
+			showModal(message){
+				uni.showModal({
+					title:'错误',
+					content:message,
 				})
 			},
 			pop(num, price) {
